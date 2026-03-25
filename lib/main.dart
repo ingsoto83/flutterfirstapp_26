@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutterfirstapp/containers_widget.dart';
-import 'package:flutterfirstapp/hello_world.dart';
-import 'package:flutterfirstapp/image_widget.dart';
-
-import 'detail_page.dart';
-import 'hello_world_sf.dart';
+import 'package:flutterfirstapp/login_page.dart';
 
 void main() {
   runApp(
     MaterialApp(
       title: "Flutter FirstApp",
-      home: DetailPage(),
+      home: LoginPage(),
     )
   );
 }
