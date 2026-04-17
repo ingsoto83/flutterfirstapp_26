@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,6 +15,9 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   String email='';
   String pass='';
+  bool loading = false;
+  FirebaseAuth _auth = FirebaseAuth.instance;
+
 
   @override
   Widget build(BuildContext context) {
@@ -93,17 +99,35 @@ class _LoginPageState extends State<LoginPage> {
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 margin: EdgeInsets.only(top: 20),
                 child:ElevatedButton(
-                    onPressed: (){
+                    onPressed: () async{
                       if(_formKey.currentState!.validate()){
+                        setState(() {
+                          loading = true;
+                        });
+                        await Future.delayed(Duration(seconds: 3));
                         _formKey.currentState!.save();
-                        showMessage(false, "Sesión iniciada correctamente...! Bienvenido!");
-                      }else{
+                        try{
+                          UserCredential usuario = await _auth.signInWithEmailAndPassword(email: email, password: pass);
+                        }catch(e){
+                          showMessage(true, e.toString());
+                        }finally{
+                          setState(() {
+                            loading = false;
+                          });
+                          if(_auth.currentUser!=null) {
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+                          }
+                        }
+
+
+                        //showMessage(false, "Sesión iniciada correctamente...! Bienvenido!");
+                      }/*else{
                           //Limpia el formulario
                         _formKey.currentState!.reset();
                         showMessage(true, "Correo o contraseña incorrectos...!");
-                      }
+                      }*/
                     },
-                    child: Text("Iniciar sesión"), style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white))
+                    child: loading ? CircularProgressIndicator(color: Colors.white,) : Text("Iniciar sesión"), style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white))
               )
             ],
           ),
