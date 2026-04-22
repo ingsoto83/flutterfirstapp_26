@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -34,7 +33,30 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           Expanded(
-            child:ListView()
+            child:StreamBuilder<QuerySnapshot>(
+              stream: _db.collection('messages').orderBy('date', descending: false).snapshots(includeMetadataChanges: true),
+              builder: (context, snapshot){
+                if (snapshot.hasError) {
+                  return const Text('Something went wrong');
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+
+                return ListView(
+                  children: snapshot.data!.docs.map((document) {
+                    return ListTile(
+                      leading: CircleAvatar(child: Text("AS",style: TextStyle(color: Colors.white),),backgroundColor: Colors.teal,),
+                      title: Text(document['message']),
+                      subtitle: Text(document['from']),
+                      trailing: Icon(Icons.check),
+                    );
+                  }).toList()
+                );
+
+              }
+            )
           ),
           Container(
             height: 100,
@@ -70,12 +92,13 @@ class _HomePageState extends State<HomePage> {
                 IconButton(onPressed: (){
                   if(_formKey.currentState!.validate()){
                     _formKey.currentState!.save();
-                    final msg  = <String, dynamic>{
-                      "message": _msg,
-                      "timestamp": FieldValue.serverTimestamp(),
-                      "from": _auth.currentUser!.email??'undefined'
+                    final message = <String, dynamic>{
+                      'message': _msg,
+                      'date':  FieldValue.serverTimestamp(),
+                      'from': _auth.currentUser!.email
                     };
-                    _db.collection('messages').add(msg);
+                    _db.collection('messages').add(message);
+                    _formKey.currentState!.reset();
                   }
                 }, icon: Icon(Icons.send))
               ],
